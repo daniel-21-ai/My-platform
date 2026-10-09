@@ -53,6 +53,10 @@ h1 { font: 700 clamp(22px, 4vw, 30px)/1.1 var(--font-display); letter-spacing: -
 @media (max-width: 600px) { .clock { text-align: left; } }
 .clock .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .clock .val { font: 600 18px var(--font-display); }
+.sync { font-size: 12px; color: var(--muted); margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.sync[data-s="cloud"] i { background: var(--good); }
+.sync[data-s="error"] i, .sync[data-s="local"] i { background: var(--bad); }
 h2 { font: 600 13px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
 
 button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 14px; }
@@ -156,6 +160,7 @@ input {
     <div class="clock">
       <div class="lbl">До сброса (полночь, Уфа)</div>
       <div class="val" id="countdown">—</div>
+      <div class="sync" id="sync" data-s="wait"><i></i><span>Подключаю сохранение…</span></div>
     </div>
   </header>
 
@@ -251,10 +256,98 @@ input {
     } catch (e) {}
     return { days: {}, lastGoals: null };
   }
-  function save() {
+  // Локальная копия в браузере — для мгновенного показа; главная копия — в аккаунте (db).
+  function saveLocal() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
   }
+  function save() {
+    saveLocal();
+    queueRemote();
+  }
   let state = load();
+
+  // ---------- облачное сохранение в аккаунте Claude ----------
+  let remoteRef = null, writing = false, dirty = false;
+  const SYNC_TEXT = {
+    wait: 'Подключаю сохранение…',
+    cloud: 'Сохранено в аккаунте',
+    saving: 'Сохраняю…',
+    local: 'Только в этом браузере',
+    error: 'Не удалось сохранить в аккаунт',
+  };
+  function setSync(s) {
+    const el = $('sync');
+    el.dataset.s = s;
+    el.querySelector('span').textContent = SYNC_TEXT[s];
+  }
+  const clone = x => JSON.parse(JSON.stringify(x));
+  // Объединяем две копии: по каждому дню берём ту, что менялась позже
+  function merge(a, b) {
+    const out = { days: {}, lastGoals: a.lastGoals || null, lastGoalsAt: a.lastGoalsAt || 0 };
+    for (const k of new Set([...Object.keys(a.days || {}), ...Object.keys(b.days || {})])) {
+      const x = a.days?.[k], y = b.days?.[k];
+      out.days[k] = !y ? x : !x ? y : ((y.updatedAt || 0) > (x.updatedAt || 0) ? y : x);
+    }
+    if (b.lastGoals && (b.lastGoalsAt || 0) > out.lastGoalsAt) { out.lastGoals = b.lastGoals; out.lastGoalsAt = b.lastGoalsAt; }
+    return out;
+  }
+  function queueRemote() {
+    if (!remoteRef) return;
+    dirty = true;
+    if (!writing) writeRemote();
+  }
+  async function writeRemote() {
+    writing = true;
+    setSync('saving');
+    let retried = false;
+    while (dirty) {
+      dirty = false;
+      try {
+        await remoteRef.set(clone(state));
+      } catch (e) {
+        if (e && e.code === 'unavailable' && !retried) {
+          retried = true; dirty = true;
+          await new Promise(r => setTimeout(r, 1000 + Math.random() * 1500));
+          continue;
+        }
+        writing = false;
+        setSync('error');
+        return;
+      }
+    }
+    writing = false;
+    setSync('cloud');
+  }
+  async function initCloud() {
+    if (!window.claude || !window.claude.use) { setSync('local'); return; }
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    const uid = user ? await user.id() : null;
+    if (!db || !uid) { setSync('local'); return; }
+    const ref = db.doc('data/users/' + uid + '/kbju');
+    let snap;
+    try { snap = await ref.get(); } catch (e) { setSync('error'); return; }
+    const remoteData = snap.exists ? clone(snap.data()) : null;
+    if (remoteData) {
+      state = merge(state, remoteData);
+      prune(today);
+      saveLocal();
+      render();
+    }
+    remoteRef = ref;
+    if (!remoteData || JSON.stringify(state) !== JSON.stringify(merge(remoteData, { days: {} }))) queueRemote();
+    else setSync('cloud');
+    // Изменения с других устройств (телефон ↔ компьютер) приходят сюда
+    ref.onSnapshot(s => {
+      if (!s.exists || s.metadata.hasPendingWrites) return;
+      const m = merge(state, clone(s.data()));
+      if (JSON.stringify(m) !== JSON.stringify(state)) {
+        state = m;
+        prune(today);
+        saveLocal();
+        render();
+      }
+    }, () => {});
+  }
 
   // Оставляем только последние 7 дней (сегодня + 6 предыдущих)
   function prune(today) {
@@ -425,10 +518,12 @@ input {
       // пересчитываем «остаток после» в истории под новые цели
       const rem = goals.slice();
       for (const op of current().ops) { rem[op.i] = r1(rem[op.i] + op.d); op.after = rem[op.i]; }
+      current().updatedAt = Date.now();
     } else {
-      state.days[today] = { goals, ops: [] };
+      state.days[today] = { goals, ops: [], updatedAt: Date.now() };
     }
     state.lastGoals = goals;
+    state.lastGoalsAt = Date.now();
     editing = false;
     for (let i = 0; i < 4; i++) $('g' + i).value = '';
     save();
@@ -462,6 +557,7 @@ input {
     const before = remaining(day);
     const after = r1(before[i] + d);
     day.ops.push({ t: Date.now(), i, d, after });
+    day.updatedAt = Date.now();
     input.value = '';
     save();
     render();
@@ -472,6 +568,7 @@ input {
     const day = current();
     if (!day || !day.ops.length) return;
     day.ops.pop();
+    day.updatedAt = Date.now();
     save();
     render();
   });
@@ -550,20 +647,21 @@ input {
       today = k;
       editing = false;
       prune(today);
-      save();
+      saveLocal();
       render();
     } else {
       renderHeader();
     }
   }, 15000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && todayKey() !== today) { today = todayKey(); prune(today); save(); render(); }
+    if (document.visibilityState === 'visible' && todayKey() !== today) { today = todayKey(); prune(today); saveLocal(); render(); }
   });
 
   prune(today);
-  save();
+  saveLocal();
   buildCells();
   render();
+  initCloud();
 })();
 </script>
 </body>
