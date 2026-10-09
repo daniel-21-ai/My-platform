@@ -180,6 +180,7 @@ input {
       <div class="row">
         <button type="submit" class="primary" id="startBtn">Начать день</button>
         <button type="button" id="cancelEdit" hidden>Отмена</button>
+        <span class="hint" id="editNote" hidden>Все ячейки начнутся заново с новых целей, сегодняшние записи сотрутся.</span>
       </div>
     </form>
   </section>
@@ -392,7 +393,8 @@ input {
     $('setup').hidden = !show;
     $('main').hidden = show;
     $('cancelEdit').hidden = !editing;
-    $('startBtn').textContent = editing ? 'Сохранить цели' : 'Начать день';
+    $('editNote').hidden = !editing;
+    $('startBtn').textContent = editing ? 'Начать заново с этими целями' : 'Начать день';
     if (show) {
       const src = editing ? day.goals : state.lastGoals;
       for (let i = 0; i < 4; i++) {
@@ -513,23 +515,14 @@ input {
       goals.push(r1(v));
     }
     $('setupErr').textContent = '';
-    if (editing && current()) {
-      current().goals = goals;
-      // пересчитываем «остаток после» в истории под новые цели
-      const rem = goals.slice();
-      for (const op of current().ops) { rem[op.i] = r1(rem[op.i] + op.d); op.after = rem[op.i]; }
-      current().updatedAt = Date.now();
-    } else {
-      state.days[today] = { goals, ops: [], updatedAt: Date.now() };
-    }
+    // Новые цели (и при старте, и при изменении) — счёт за день начинается с чистого листа
+    state.days[today] = { goals, ops: [], updatedAt: Date.now() };
     state.lastGoals = goals;
     state.lastGoalsAt = Date.now();
     editing = false;
     for (let i = 0; i < 4; i++) $('g' + i).value = '';
     save();
     render();
-    const day = current();
-    if (day.ops.length && allZero(remaining(day))) celebrate();
   });
 
   $('cancelEdit').addEventListener('click', () => {
