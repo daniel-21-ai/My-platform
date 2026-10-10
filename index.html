@@ -128,13 +128,23 @@ input {
 .week { display: grid; gap: 6px; }
 .day { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 .day summary { list-style: none; cursor: pointer; }
-.day summary, .day .sumrow { padding: 10px 12px; display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.day summary, .day .sumrow { padding: 10px 12px; display: grid; grid-template-columns: 74px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; }
 .day summary::-webkit-details-marker { display: none; }
 .day .dname { font-weight: 600; }
 .day .dname small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
 .day .nums { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 12px var(--font-display); font-variant-numeric: tabular-nums; min-width: 0; }
 .day .nums span { white-space: nowrap; }
 .day .nums i { font-style: normal; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+.daytotal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; display: grid; gap: 8px; }
+.daytotal .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.daytotal .top span { font-weight: 600; }
+.daytotal b { font: 700 22px var(--font-display); font-variant-numeric: tabular-nums; }
+.daytotal b.full { color: var(--good); }
+.daytotal .bar { height: 10px; border-radius: 5px; }
+.daytotal .bar i { background: var(--ink); }
+.daytotal .bar i.full { background: var(--good); }
+.dpct { font: 600 13px var(--font-display); font-variant-numeric: tabular-nums; }
+.dpct.full { color: var(--good); }
 .chip { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; border: 1px solid currentColor; white-space: nowrap; }
 .chip.ok { color: var(--good); }
 .chip.no { color: var(--bad); }
@@ -190,6 +200,10 @@ input {
   </section>
 
   <section id="main" hidden>
+    <div class="daytotal">
+      <div class="top"><span>День выполнен на</span><b id="dayPct">0%</b></div>
+      <div class="bar"><i id="dayBar"></i></div>
+    </div>
     <div id="doneBanner" class="banner" hidden>Все четыре ячейки на нуле. Молодец, Даниел, сегодня ты сделал это!</div>
     <div class="cells" id="cells"></div>
     <p class="hint" style="margin-top:10px">Enter в поле = вычесть. Чтобы прибавить, нажми «+» или начни число с плюса: <b>+120</b>. Можно с запятой: 12,5.</p>
@@ -375,6 +389,14 @@ input {
     return rem;
   }
   const allZero = rem => rem.every(v => v === 0);
+  // Насколько день близок к нулю во всех ячейках: среднее по четырём, перебор тоже уводит от нуля.
+  // 100% — только когда все ячейки ровно на нуле.
+  function dayPercent(day) {
+    const rem = remaining(day);
+    if (allZero(rem)) return 100;
+    const avg = rem.reduce((sum, v, i) => sum + Math.max(0, 100 - Math.abs(v) / day.goals[i] * 100), 0) / 4;
+    return Math.min(99, Math.floor(avg));
+  }
 
   // ---------- рендер ----------
   const $ = id => document.getElementById(id);
@@ -450,6 +472,11 @@ input {
         : `Цель ${fmt(g)} · съедено ${fmt(eaten)}`;
     });
     $('doneBanner').hidden = !allZero(rem) || !day.ops.length;
+    const dp = dayPercent(day);
+    $('dayPct').textContent = dp + '%';
+    $('dayPct').className = dp === 100 ? 'full' : '';
+    $('dayBar').style.width = dp + '%';
+    $('dayBar').className = dp === 100 ? 'full' : '';
   }
 
   function opRow(day, op) {
@@ -479,7 +506,7 @@ input {
       const day = state.days[key];
       const wd = keyDate(key, { weekday: 'short' });
       const dm = keyDate(key, { day: 'numeric', month: 'short' });
-      let chip, nums = '', inner = '';
+      let chip, nums = '', inner = '', pct = '<span></span>';
       if (!day) {
         chip = `<span class="chip none">${k === 0 ? 'не начат' : 'нет записей'}</span>`;
       } else {
@@ -488,13 +515,15 @@ input {
         chip = done ? '<span class="chip ok">выполнено</span>'
           : k === 0 ? '<span class="chip none">в процессе</span>'
           : '<span class="chip no">не закрыт</span>';
+        const dp = dayPercent(day);
+        pct = `<span class="dpct${dp === 100 ? ' full' : ''}" title="День выполнен на">${dp}%</span>`;
         nums = rem.map((v, i) => `<span title="${MACROS[i].name}: осталось"><i style="background:var(${MACROS[i].color})"></i>${fmt(v)}</span>`).join('');
         inner = day.ops.length
           ? `<ul class="log">${day.ops.slice().reverse().map(op => opRow(day, op)).join('')}</ul>`
           : '<p class="empty">Записей нет.</p>';
         inner = `<div class="inner"><p class="meta" style="margin:0 0 6px">Цели: ${day.goals.map((g, i) => `${MACROS[i].name.toLowerCase()} ${fmt(g)}`).join(' · ')} · записей: ${day.ops.length}</p>${inner}</div>`;
       }
-      const row = `<span class="dname">${k === 0 ? 'Сегодня' : wd}<small>${dm}</small></span><span class="nums">${nums}</span>${chip}`;
+      const row = `<span class="dname">${k === 0 ? 'Сегодня' : wd}<small>${dm}</small></span><span class="nums">${nums}</span>${pct}${chip}`;
       const cls = `day${k === 0 ? ' today' : ''}`;
       html += day
         ? `<details class="${cls}"><summary>${row}</summary>${inner}</details>`
