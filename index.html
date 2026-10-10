@@ -90,6 +90,10 @@ input {
 .rem.zero { color: var(--good); }
 .rem.neg { color: var(--bad); }
 .meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.barrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.pct { font: 600 13px var(--font-display); font-variant-numeric: tabular-nums; color: var(--c); min-width: 4ch; text-align: right; }
+.pct.zero { color: var(--good); }
+.pct.neg { color: var(--bad); }
 .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--c); width: 0; transition: width .3s; }
 .ops { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; }
@@ -409,7 +413,7 @@ input {
       <div class="cell" data-i="${i}">
         <div class="name"><b>${m.name}</b><span>осталось</span></div>
         <div class="rem" id="rem${i}">0</div>
-        <div class="bar"><i id="bar${i}"></i></div>
+        <div class="barrow"><div class="bar"><i id="bar${i}"></i></div><span class="pct" id="pct${i}">0%</span></div>
         <div class="meta" id="meta${i}"></div>
         <form class="ops" data-i="${i}" novalidate>
           <input id="in${i}" inputmode="decimal" autocomplete="off" placeholder="сколько, ${m.unit}" aria-label="${m.name}: значение">
@@ -434,7 +438,13 @@ input {
       el.innerHTML = `${fmt(v)} <small>${MACROS[i].unit}</small>`;
       el.className = 'rem' + (v === 0 ? ' zero' : v < 0 ? ' neg' : '');
       const eaten = g - v;
-      $('bar' + i).style.width = Math.max(0, Math.min(100, eaten / g * 100)) + '%';
+      const pct = eaten / g * 100;
+      $('bar' + i).style.width = Math.max(0, Math.min(100, pct)) + '%';
+      // 100% только когда ровно ноль; перебор — больше 100%
+      const shown = v === 0 ? 100 : v > 0 ? Math.max(0, Math.min(99, Math.floor(pct))) : Math.max(101, Math.round(pct));
+      const pe = $('pct' + i);
+      pe.textContent = shown + '%';
+      pe.className = 'pct' + (v === 0 ? ' zero' : v < 0 ? ' neg' : '');
       $('meta' + i).textContent = v < 0
         ? `Цель ${fmt(g)} · перебор на ${fmt(-v)}`
         : `Цель ${fmt(g)} · съедено ${fmt(eaten)}`;
