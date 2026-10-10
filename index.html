@@ -128,7 +128,7 @@ input {
 .week { display: grid; gap: 6px; }
 .day { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 .day summary { list-style: none; cursor: pointer; }
-.day summary, .day .sumrow { padding: 10px 12px; display: grid; grid-template-columns: 74px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; }
+.day summary, .day .sumrow { padding: 10px 12px; display: grid; grid-template-columns: 74px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; }
 .day summary::-webkit-details-marker { display: none; }
 .day .dname { font-weight: 600; }
 .day .dname small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
@@ -151,6 +151,10 @@ input {
 .chip.none { color: var(--muted); }
 .day .inner { padding: 0 12px 10px; }
 .day.today { border-color: var(--muted); }
+.day.viewing { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.openday { font-size: 12px; padding: 3px 9px; }
+.pastbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; background: var(--surface); border: 1px solid var(--ink); border-radius: 12px; padding: 10px 14px; }
+.pastbar b { font-weight: 700; }
 
 /* Поздравление */
 #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
@@ -178,9 +182,14 @@ input {
     </div>
   </header>
 
+  <div class="pastbar" id="pastBar" hidden>
+    <span>Ты правишь прошлый день: <b id="pastName"></b></span>
+    <button type="button" class="primary" id="backToday">Вернуться к сегодня</button>
+  </div>
+
   <section id="setup" class="setup" hidden>
     <div>
-      <h2>Цели на сегодня</h2>
+      <h2 id="setupTitle">Цели на сегодня</h2>
       <p class="hint">Впиши дневную норму. Каждая ячейка — число от 1 до 1 000 000. Дальше вычитай съеденное, пока везде не станет ноль.</p>
     </div>
     <form id="setupForm" novalidate>
@@ -194,7 +203,7 @@ input {
       <div class="row">
         <button type="submit" class="primary" id="startBtn">Начать день</button>
         <button type="button" id="cancelEdit" hidden>Отмена</button>
-        <span class="hint" id="editNote" hidden>Все ячейки начнутся заново с новых целей, сегодняшние записи сотрутся.</span>
+        <span class="hint" id="editNote" hidden>Все ячейки начнутся заново с новых целей, записи этого дня сотрутся.</span>
       </div>
     </form>
   </section>
@@ -212,7 +221,7 @@ input {
   <div class="cols">
     <section>
       <div class="panel-head">
-        <h2>История за сегодня</h2>
+        <h2 id="logTitle">История за сегодня</h2>
         <div class="tools">
           <button type="button" id="undoBtn">Отменить последнее</button>
           <button type="button" id="editBtn">Изменить цели</button>
@@ -402,8 +411,17 @@ input {
   const $ = id => document.getElementById(id);
   let today = todayKey();
   let editing = false;
+  let viewKey = today; // какой день сейчас открыт: сегодня или один из прошлых 6
 
-  function current() { return state.days[today]; }
+  function current() { return state.days[viewKey]; }
+  const isToday = () => viewKey === today;
+  function openDay(key) {
+    viewKey = key;
+    editing = false;
+    for (let i = 0; i < 4; i++) $('g' + i).value = '';
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   function renderHeader() {
     const s = keyDate(today, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -415,6 +433,11 @@ input {
 
   function renderSetup() {
     const day = current();
+    const name = keyDate(viewKey, { weekday: 'long', day: 'numeric', month: 'long' });
+    $('pastBar').hidden = isToday();
+    $('pastName').textContent = name;
+    $('setupTitle').textContent = isToday() ? 'Цели на сегодня' : 'Цели на ' + name;
+    $('logTitle').textContent = isToday() ? 'История за сегодня' : 'История за ' + keyDate(viewKey, { day: 'numeric', month: 'long' });
     const show = !day || editing;
     $('setup').hidden = !show;
     $('main').hidden = show;
@@ -496,7 +519,7 @@ input {
     $('editBtn').disabled = !day || editing;
     $('todayLog').innerHTML = ops.length
       ? `<ul class="log">${ops.slice().reverse().map(op => opRow(day, op)).join('')}</ul>`
-      : `<p class="empty">${day ? 'Пока ни одной записи. Впиши, сколько съел, в нужную ячейку.' : 'Сначала задай цели на сегодня.'}</p>`;
+      : `<p class="empty">${day ? 'Пока ни одной записи. Впиши, сколько съел, в нужную ячейку.' : (isToday() ? 'Сначала задай цели на сегодня.' : 'Сначала задай цели на этот день.')}</p>`;
   }
 
   function renderWeek() {
@@ -507,6 +530,9 @@ input {
       const wd = keyDate(key, { weekday: 'short' });
       const dm = keyDate(key, { day: 'numeric', month: 'short' });
       let chip, nums = '', inner = '', pct = '<span></span>';
+      const open = key === viewKey
+        ? '<span class="chip none">открыт</span>'
+        : `<button type="button" class="openday" data-open="${key}">${day ? 'Править' : 'Заполнить'}</button>`;
       if (!day) {
         chip = `<span class="chip none">${k === 0 ? 'не начат' : 'нет записей'}</span>`;
       } else {
@@ -523,14 +549,21 @@ input {
           : '<p class="empty">Записей нет.</p>';
         inner = `<div class="inner"><p class="meta" style="margin:0 0 6px">Цели: ${day.goals.map((g, i) => `${MACROS[i].name.toLowerCase()} ${fmt(g)}`).join(' · ')} · записей: ${day.ops.length}</p>${inner}</div>`;
       }
-      const row = `<span class="dname">${k === 0 ? 'Сегодня' : wd}<small>${dm}</small></span><span class="nums">${nums}</span>${pct}${chip}`;
-      const cls = `day${k === 0 ? ' today' : ''}`;
+      const row = `<span class="dname">${k === 0 ? 'Сегодня' : wd}<small>${dm}</small></span><span class="nums">${nums}</span>${pct}${chip}${open}`;
+      const cls = `day${k === 0 ? ' today' : ''}${key === viewKey ? ' viewing' : ''}`;
       html += day
         ? `<details class="${cls}"><summary>${row}</summary>${inner}</details>`
         : `<div class="${cls}"><div class="sumrow">${row}</div></div>`;
     }
     $('week').innerHTML = html;
   }
+  $('week').addEventListener('click', e => {
+    const b = e.target.closest('[data-open]');
+    if (!b) return;
+    e.preventDefault(); // не раскрывать строку, а открыть день
+    openDay(b.dataset.open);
+  });
+  $('backToday').addEventListener('click', () => openDay(today));
 
   function render() {
     renderHeader();
@@ -555,7 +588,7 @@ input {
     }
     $('setupErr').textContent = '';
     // Новые цели (и при старте, и при изменении) — счёт за день начинается с чистого листа
-    state.days[today] = { goals, ops: [], updatedAt: Date.now() };
+    state.days[viewKey] = { goals, ops: [], updatedAt: Date.now() };
     state.lastGoals = goals;
     state.lastGoalsAt = Date.now();
     editing = false;
@@ -673,20 +706,20 @@ input {
   }
 
   // ---------- смена суток в полночь по Уфе ----------
-  setInterval(() => {
+  function checkDayChange() {
     const k = todayKey();
-    if (k !== today) {
-      today = k;
-      editing = false;
-      prune(today);
-      saveLocal();
-      render();
-    } else {
-      renderHeader();
-    }
-  }, 15000);
+    if (k === today) return false;
+    // если был открыт «сегодня» — переходим на новый день; прошлый день остаётся открытым, пока он в неделе
+    if (viewKey === today || viewKey < shiftKey(k, -6)) { viewKey = k; editing = false; }
+    today = k;
+    prune(today);
+    saveLocal();
+    render();
+    return true;
+  }
+  setInterval(() => { if (!checkDayChange()) renderHeader(); }, 15000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && todayKey() !== today) { today = todayKey(); prune(today); saveLocal(); render(); }
+    if (document.visibilityState === 'visible') checkDayChange();
   });
 
   prune(today);
