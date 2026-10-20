@@ -114,7 +114,7 @@
 
   .content { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; padding-bottom: 24px; }
   .row { display: flex; gap: 32px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .grid-2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 32px; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
   .center { align-items: center; justify-content: center; }
 
@@ -278,8 +278,9 @@
   /* ---------- Цифры ---------- */
   .kpi { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .kpi:last-child { border-bottom: none; }
-  .kpi span:first-child { font-size: 22px; color: var(--grey); }
-  .kpi span:last-child { font-size: 26px; font-weight: 800; color: var(--white); white-space: nowrap; }
+  .kpi > span:first-child { font-size: 22px; color: var(--grey); }
+  .kpi > span:last-child { font-size: 26px; font-weight: 800; color: var(--white); white-space: nowrap; }
+  .kpi-sub { display: block; font-size: 15px; font-style: normal; font-weight: 500; color: var(--muted); }
 
   /* ---------- CJM ---------- */
   .cjm { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
@@ -307,9 +308,9 @@
   th { text-align: left; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--blue); padding: 8px 12px; border-bottom: 2px solid var(--blue); }
   td { padding: 7px 12px; color: var(--grey); border-bottom: 1px solid var(--border); }
   td:first-child { color: var(--white); font-weight: 600; white-space: nowrap; }
+  td:nth-child(2), td:nth-child(3) { white-space: nowrap; }
   tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
-  .tbd { color: var(--muted); font-style: italic; }
-
+  
   .appendix-tag { color: var(--muted); }
 
   .prompt-box {
@@ -353,14 +354,15 @@
 <!-- ================= СЛАЙД 2: ПРОБЛЕМА ================= -->
 <section class="slide">
   <span class="tag" style="color: var(--red)">Проблема</span>
-  <h2><span class="c-red">19%</span> еды в рознице летит в мусор</h2>
+  <h2 style="margin-bottom: 8px;"><span class="c-red">19%</span> еды в рознице летит в мусор</h2>
+  <p style="margin-bottom: 20px;">Мы теряем деньги и ресурсы.</p>
   <div class="content">
-    <div class="row" style="margin-bottom: 28px;">
+    <div class="row" style="margin-bottom: 24px;">
       <div class="card red" style="flex:1; padding: 20px 28px;">
         <p class="small"><strong class="c-red">ЮНЕП:</strong> 19% отходов в рознице · <strong class="c-red">ФАО:</strong> 13% потерь до розницы</p>
       </div>
       <div class="card blue" style="flex:1; padding: 20px 28px;">
-        <p class="small"><strong>ЦА:</strong> категорийные менеджеры и директора локальных сетей</p>
+        <p class="small"><strong>ЦА:</strong> категорийные менеджеры и директора локальных торговых сетей</p>
       </div>
     </div>
     <div class="grid-2">
@@ -409,16 +411,16 @@
   <div class="content">
     <p style="margin-bottom: 32px;">Звено: <strong class="c-blue">доведение до потребителя (Ритейл)</strong></p>
     <div class="flow" style="height: 240px; margin-bottom: 40px;">
-      <div class="step"><div class="icon">📦</div><p>Датчик на коробке</p></div>
+      <div class="step"><div class="icon">📦</div><p>Датчик на коробке</p><p class="xs" style="color: var(--muted); font-weight: 500;">Сенсоры IoT</p></div>
       <div class="arrow"></div>
-      <div class="step"><div class="icon">📶</div><p>Передача данных (Bluetooth)</p></div>
+      <div class="step"><div class="icon">📶</div><p>Передача данных</p><p class="xs" style="color: var(--muted); font-weight: 500;">Bluetooth / Wi-Fi</p></div>
       <div class="arrow"></div>
-      <div class="step"><div class="icon">🧠</div><p>ИИ-анализ</p></div>
+      <div class="step"><div class="icon">🧠</div><p>ИИ-анализ</p><p class="xs" style="color: var(--muted); font-weight: 500;">Предиктивная аналитика</p></div>
       <div class="arrow"></div>
-      <div class="step final"><div class="icon">📱</div><p>«Осталось 6 часов. Скидка 30%»</p></div>
+      <div class="step final"><div class="icon">📱</div><p class="small">«Партия №4 — осталось 6 часов. Скидка 30%»</p></div>
     </div>
     <div class="grid-2">
-      <div class="card blue" style="padding: 20px 28px;"><p><strong>Кто пользуется:</strong> Продавец</p></div>
+      <div class="card blue" style="padding: 20px 28px;"><p><strong>Кто пользуется:</strong> Продавец / менеджер зала</p></div>
       <div class="card green" style="padding: 20px 28px;"><p><strong>Кто платит:</strong> Торговая сеть</p></div>
     </div>
   </div>
@@ -435,17 +437,17 @@
       <div class="card" style="border-top: 6px solid var(--blue);">
         <div class="label c-blue">TAM</div>
         <div class="value">50 млрд ₽</div>
-        <p class="desc">затраты ритейла РФ</p>
+        <p class="desc">затраты ритейла РФ на сохранность</p>
       </div>
       <div class="card" style="border-top: 6px solid #60A5FA;">
         <div class="label" style="color:#60A5FA">SAM</div>
         <div class="value">8 млрд ₽</div>
-        <p class="desc">локальные сети ЦФО</p>
+        <p class="desc">локальные сети и РЦ ЦФО</p>
       </div>
       <div class="card" style="border-top: 6px solid var(--green);">
         <div class="label c-green">SOM</div>
         <div class="value">15 млн ₽</div>
-        <p class="desc">пилот на 50 магазинов</p>
+        <p class="desc">пилот на 50 магазинов за год</p>
       </div>
     </div>
     <h3>Тренды</h3>
@@ -462,23 +464,23 @@
 <!-- ================= СЛАЙД 6: АЛЬТЕРНАТИВЫ ================= -->
 <section class="slide">
   <span class="tag">Альтернативы и новизна</span>
-  <h2>Почему мы лучше</h2>
+  <h2>Почему мы лучше привычных способов</h2>
   <div class="content">
     <div class="grid-2" style="flex:1;">
       <div style="display:flex; flex-direction:column; gap: 24px;">
         <div class="card red">
           <h3><span class="c-red">−</span> Ручной пересмотр</h3>
-          <p class="small">Долго, человеческий фактор, не видит внутри упаковки</p>
+          <p class="small">Долго, человеческий фактор, не видит процессы внутри упаковки</p>
         </div>
         <div class="card red">
           <h3><span class="c-red">−</span> Термодатчики</h3>
-          <p class="small">Показывают температуру воздуха, а не продукта</p>
+          <p class="small">Показывают температуру воздуха, а не реальное состояние продукта</p>
         </div>
       </div>
       <div class="card green" style="display:flex; flex-direction:column; justify-content:center; background: rgba(16,185,129,0.1);">
         <h3 style="font-size: 32px;"><span class="c-green">+</span> AeroFresh</h3>
         <ul class="list plus" style="margin-top: 12px;">
-          <li>Измеряем <strong>сам продукт</strong></li>
+          <li>Измеряем <strong>продукт, а не среду</strong></li>
           <li>Прогнозируем порчу <strong>за часы до</strong> видимых признаков</li>
         </ul>
       </div>
@@ -497,14 +499,14 @@
       <div class="card blue">
         <h3>Кто платит: <span class="c-blue">торговая сеть</span></h3>
         <div class="kpi"><span>Подписка</span><span>15 000 ₽/мес.</span></div>
-        <div class="kpi"><span>Датчик</span><span>5 ₽/шт.</span></div>
+        <div class="kpi"><span>Датчики (1000 × 5 ₽)</span><span>5 000 ₽/мес.</span></div>
         <div class="kpi"><span><strong>Итого</strong></span><span class="c-blue">20 000 ₽/мес.</span></div>
       </div>
       <div class="card green">
         <h3>Юнит-экономика <span class="c-green">на клиента</span></h3>
-        <div class="kpi"><span>Затраты проекта</span><span>8 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Затраты проекта<em class="kpi-sub">облако, датчики, поддержка</em></span><span>8 000 ₽/мес.</span></div>
         <div class="kpi"><span>Прибыль</span><span class="c-green">12 000 ₽</span></div>
-        <div class="kpi"><span>Экономия клиента</span><span>24 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Экономия клиента на списаниях</span><span>24 000 ₽/мес.</span></div>
       </div>
     </div>
     <div class="highlight" style="margin-top: 28px; text-align:center;">Окупаемость для клиента: <span class="c-green">1 месяц</span></div>
@@ -519,16 +521,19 @@
   <h2>Визуализация и обратная связь</h2>
   <div class="content">
     <div class="row" style="flex:1; min-height:0;">
-      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншот приложения (список партий)</span></div>
-      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншот пуш-уведомления</span></div>
-      <div style="flex:1.3; display:flex; flex-direction:column; gap: 20px;">
-        <div class="card green" style="text-align:center; padding: 22px;">
-          <div style="font-size: 64px; font-weight: 800;" class="c-green">4 из 5</div>
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншот из Figma: список партий с таймерами</span></div>
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншот из Figma: пуш-уведомление</span></div>
+      <div style="flex:1.3; display:flex; flex-direction:column; gap: 14px;">
+        <div class="card green" style="text-align:center; padding: 16px 22px;">
+          <div style="font-size: 52px; font-weight: 800;" class="c-green">4 из 5</div>
           <p class="small">менеджеров готовы внедрить после показа макета</p>
         </div>
         <div class="card quote" style="flex:1;">
           <p style="font-size:19px;">Если приложение скажет мне, когда давать скидку, я сэкономлю кучу нервов</p>
           <p class="author">— Марина, продавец</p>
+        </div>
+        <div class="card blue" style="padding: 16px 24px;">
+          <p class="xs"><strong>Изменения после теста:</strong> упростили интерфейс, добавили интеграцию с кассовым ПО</p>
         </div>
       </div>
     </div>
@@ -546,17 +551,17 @@
       <div class="t-item card">
         <div class="week">Неделя 1–2</div>
         <h3>Бумажный тест</h3>
-        <p class="small">Проверяем гипотезу вручную в магазине</p>
+        <p class="small">1 магазин: менеджер вносит данные в таблицу</p>
       </div>
       <div class="t-item card">
         <div class="week">Неделя 3–4</div>
         <h3>No-code MVP</h3>
-        <p class="small">Сборка Telegram-бота с уведомлениями</p>
+        <p class="small">Заказ дешевых датчиков, сборка Telegram-бота</p>
       </div>
       <div class="t-item card">
         <div class="week">Неделя 5–6</div>
         <h3>Метрики</h3>
-        <p class="small">Сбор метрик и путь к пилоту</p>
+        <p class="small">Подсчет спасенного товара, путь к пилоту</p>
       </div>
     </div>
   </div>
@@ -587,6 +592,7 @@
           <h3>Midjourney</h3>
           <p class="small">3D-макет датчика</p>
         </div>
+        <p class="xs" style="color: var(--muted);">Промпты — в Приложении 4</p>
       </div>
     </div>
   </div>
@@ -600,11 +606,11 @@
   <h2>CJM — путь клиента</h2>
   <div class="content" style="justify-content:center;">
     <div class="cjm">
-      <div class="col"><div class="stage">Проблема</div><div class="card action"><div class="emoji">🍓</div><p>Менеджер видит порчу</p></div></div>
+      <div class="col"><div class="stage">Проблема</div><div class="card action"><div class="emoji">🍓</div><p>Видит, что клубника вянет. Поздно</p></div></div>
       <div class="col"><div class="stage">Поиск</div><div class="card action"><div class="emoji">🔍</div><p>Находит AeroFresh</p></div></div>
-      <div class="col"><div class="stage">Действие</div><div class="card action"><div class="emoji">🏷️</div><p>Клеит датчики</p></div></div>
-      <div class="col"><div class="stage">Результат</div><div class="card action"><div class="emoji">🔔</div><p>Получает пуш</p></div></div>
-      <div class="col"><div class="stage">Ценность</div><div class="card action" style="border-color: var(--green);"><div class="emoji">💰</div><p>Делает скидку, сохраняет деньги</p></div></div>
+      <div class="col"><div class="stage">Действие</div><div class="card action"><div class="emoji">🏷️</div><p>Клеит датчики при приемке</p></div></div>
+      <div class="col"><div class="stage">Результат</div><div class="card action"><div class="emoji">🔔</div><p>Утром пуш «Осталось 6 часов» — делает скидку</p></div></div>
+      <div class="col"><div class="stage">Ценность</div><div class="card action" style="border-color: var(--green);"><div class="emoji">💰</div><p>Товар продан, отходов нет</p></div></div>
     </div>
   </div>
   <div class="slide-brand">AERO<span>FRESH</span></div>
@@ -618,10 +624,10 @@
   <div class="content">
     <div class="grid-2">
       <div class="card">
-        <div class="kpi"><span>Потери магазина</span><span class="c-red">80 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Потери магазина на скоропорте</span><span class="c-red">80 000 ₽/мес.</span></div>
         <div class="kpi"><span>Снижение потерь (30%)</span><span class="c-green">24 000 ₽/мес.</span></div>
-        <div class="kpi"><span>Затраты на AeroFresh</span><span>20 000 ₽/мес.</span></div>
-        <div class="kpi"><span><strong>Чистая выгода</strong></span><span class="c-green">4 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Затраты клиента</span><span>20 000 ₽/мес.</span></div>
+        <div class="kpi"><span><strong>Чистая выгода клиента</strong><em class="kpi-sub">+ лояльность покупателей</em></span><span class="c-green">4 000 ₽/мес.</span></div>
       </div>
       <div class="card green" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
         <p class="small">Точка безубыточности проекта</p>
@@ -656,6 +662,13 @@
         </ul>
       </div>
     </div>
+    <div class="row" style="margin-top: 28px; align-items: stretch;">
+      <div class="card" style="flex: 1.4;">
+        <h3>🤖 ИИ в работе</h3>
+        <p class="small">ChatGPT — структура и гипотезы · Midjourney — 3D-макет датчика</p>
+      </div>
+      <div class="placeholder" style="flex: 1; height: 150px;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Фото газового сенсора крупным планом</span></div>
+    </div>
   </div>
   <div class="slide-brand">AERO<span>FRESH</span></div>
   <div class="slide-num">13</div>
@@ -670,14 +683,14 @@
       <div style="flex:1.2; display:flex; flex-direction:column; gap: 20px;">
         <div class="card blue">
           <h3>ChatGPT</h3>
-          <div class="prompt-box">«Выступи в роли категорийного менеджера...»</div>
+          <div class="prompt-box" style="font-size: 16px;">«Выступи в роли категорийного менеджера ритейла. Напиши 5 главных болей, связанных со списанием скоропортящихся продуктов»</div>
         </div>
         <div class="card blue">
           <h3>Midjourney</h3>
-          <div class="prompt-box">«Smart IoT sensor sticker on a box of strawberries...»</div>
+          <div class="prompt-box" style="font-size: 16px;">«Smart IoT sensor sticker on a box of strawberries, futuristic, minimalist design, product render, white background, high tech»</div>
         </div>
       </div>
-      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншоты диалогов с ИИ</span></div>
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншоты диалогов с ChatGPT и Midjourney</span></div>
     </div>
   </div>
   <div class="slide-brand">AERO<span>FRESH</span></div>
@@ -687,27 +700,27 @@
 <!-- ================= СЛАЙД 15: ОПРОСЫ ================= -->
 <section class="slide" style="padding-top: 44px;">
   <span class="tag appendix-tag">Приложение 5</span>
-  <h2 style="font-size: 40px; margin-bottom: 18px;">Сводка опросов</h2>
+  <h2 style="font-size: 40px; margin-bottom: 18px;">Сводка опросов — 10 интервью</h2>
   <div class="content">
     <div class="row" style="flex:1; min-height:0; gap: 24px;">
       <div style="flex: 2.2;">
         <table>
           <thead><tr><th>№</th><th>Роль</th><th>Имя</th><th>Главная цитата</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Категорийный менеджер</td><td>Алексей</td><td>Теряем 15% маржи</td></tr>
-            <tr><td>2</td><td>Логист</td><td>Дмитрий</td><td>Узнаем о проблеме, когда уже поздно</td></tr>
-            <tr><td>3</td><td>Продавец</td><td>Марина</td><td>Сэкономлю кучу нервов</td></tr>
-            <tr><td>4</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
-            <tr><td>5</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
-            <tr><td>6</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
-            <tr><td>7</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
-            <tr><td>8</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
-            <tr><td>9</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
-            <tr><td>10</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>1</td><td>Категорийный менеджер</td><td>Алексей</td><td>Теряем 15% маржи, не видим, что внутри</td></tr>
+            <tr><td>2</td><td>Логист</td><td>Дмитрий</td><td>Проблема на стыке выгрузки, узнаем поздно</td></tr>
+            <tr><td>3</td><td>Фермер</td><td>Сергей</td><td>Сети штрафуют за порчу, готов софинансировать</td></tr>
+            <tr><td>4</td><td>Продавец</td><td>Марина</td><td>Ручной обход неэффективен, выкидываем хороший товар</td></tr>
+            <tr><td>5</td><td>Покупатель</td><td>Екатерина</td><td>Хочу видеть индикатор свежести на полке</td></tr>
+            <tr><td>6</td><td>Технолог</td><td>Анна</td><td>Нужен ранний прогноз, чтобы перестроить логистику</td></tr>
+            <tr><td>7</td><td>Водитель</td><td>Игорь</td><td>Нужен сигнал о порче груза в пути</td></tr>
+            <tr><td>8</td><td>Эколог</td><td>Павел</td><td>Умный мониторинг сократит углеродный след</td></tr>
+            <tr><td>9</td><td>Маркетолог</td><td>Светлана</td><td>Нужен точный прогноз времени для скидки</td></tr>
+            <tr><td>10</td><td>Студент</td><td>Артем</td><td>Готов ждать скидку, если она вовремя</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншоты переписок</span></div>
+      <div class="placeholder" style="flex:0.75;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншоты переписок</span></div>
     </div>
   </div>
   <div class="slide-brand">AERO<span>FRESH</span></div>
