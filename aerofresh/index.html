@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeroFresh — питч</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A1128;
+    --bg-2: #1B1A47;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.12);
+    --blue: #3B82F6;
+    --red: #EF4444;
+    --green: #10B981;
+    --white: #FFFFFF;
+    --grey: #D1D5DB;
+    --muted: #9CA3AF;
+    --slide-w: 1280px;
+    --slide-h: 720px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #05080F;
+    font-family: 'Montserrat', 'Inter', 'Segoe UI', Arial, sans-serif;
+    color: var(--white);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---------- Экран: слайды друг под другом, масштаб под ширину окна ---------- */
+  .deck {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    padding: 32px 0;
+  }
+  .slide-wrap {
+    width: calc(var(--slide-w) * var(--scale, 1));
+    height: calc(var(--slide-h) * var(--scale, 1));
+  }
+  .slide-wrap > .slide {
+    transform: scale(var(--scale, 1));
+    transform-origin: top left;
+  }
+
+  /* ---------- Слайд ---------- */
+  .slide {
+    position: relative;
+    width: var(--slide-w);
+    height: var(--slide-h);
+    overflow: hidden;
+    padding: 56px 72px 64px;
+    background:
+      radial-gradient(circle at 85% 10%, rgba(59,130,246,0.18), transparent 45%),
+      radial-gradient(circle at 5% 100%, rgba(27,26,71,0.9), transparent 55%),
+      linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border-radius: 12px;
+  }
+  .slide::after { /* тонкая линия-акцент сверху */
+    content: "";
+    position: absolute;
+    top: 0; left: 72px;
+    width: 120px; height: 6px;
+    background: var(--blue);
+    border-radius: 0 0 6px 6px;
+  }
+  .slide-num {
+    position: absolute;
+    bottom: 24px; right: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .slide-brand {
+    position: absolute;
+    bottom: 24px; left: 72px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+  .slide-brand span { color: var(--green); }
+
+  .tag {
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--blue);
+    margin-bottom: 12px;
+  }
+  h1 { font-size: 64px; font-weight: 800; line-height: 1.1; }
+  h2 { font-size: 48px; font-weight: 800; line-height: 1.15; margin-bottom: 32px; }
+  h3 { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+  p, li { font-size: 24px; line-height: 1.45; color: var(--grey); }
+  .small { font-size: 20px; }
+  .xs { font-size: 17px; }
+  strong { color: var(--white); }
+  .c-blue { color: var(--blue); }
+  .c-red { color: var(--red); }
+  .c-green { color: var(--green); }
+
+  .content { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; padding-bottom: 24px; }
+  .row { display: flex; gap: 32px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .center { align-items: center; justify-content: center; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .card.red   { border-left: 6px solid var(--red); }
+  .card.green { border-left: 6px solid var(--green); }
+  .card.blue  { border-left: 6px solid var(--blue); }
+
+  .highlight {
+    background: linear-gradient(90deg, rgba(16,185,129,0.22), rgba(16,185,129,0.05));
+    border: 1px solid rgba(16,185,129,0.5);
+    border-radius: 16px;
+    padding: 24px 32px;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .quote {
+    position: relative;
+    padding: 28px 32px 24px 80px;
+  }
+  .quote::before {
+    content: "“";
+    position: absolute;
+    left: 22px; top: 2px;
+    font-size: 110px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--red);
+    opacity: 0.85;
+  }
+  .quote p { font-size: 21px; font-style: italic; color: var(--white); }
+  .quote .author { margin-top: 14px; font-size: 17px; font-style: normal; color: var(--muted); font-weight: 600; }
+
+  ul.list { list-style: none; }
+  ul.list li { position: relative; padding-left: 36px; margin-bottom: 12px; }
+  ul.list li::before {
+    content: "";
+    position: absolute;
+    left: 4px; top: 13px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--blue);
+  }
+  ul.list.minus li::before { background: var(--red); }
+  ul.list.plus li::before  { background: var(--green); }
+
+  .placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: repeating-linear-gradient(45deg, #2B2F3A, #2B2F3A 14px, #313644 14px, #313644 28px);
+    border: 2px dashed #6B7280;
+    border-radius: 16px;
+    color: #9CA3AF;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
+    padding: 16px;
+  }
+  .placeholder .ph-sub { font-size: 15px; font-weight: 500; letter-spacing: 0; color: #D1D5DB; }
+  .placeholder img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
+
+  /* ---------- Слайд 1 ---------- */
+  .title-slide { justify-content: center; }
+  .title-slide h1 { font-size: 110px; letter-spacing: -2px; }
+  .title-slide h1 span { color: var(--green); }
+  .title-slide .subtitle { font-size: 36px; color: var(--grey); margin-top: 16px; font-weight: 500; }
+  .title-slide .meta {
+    position: absolute;
+    left: 72px; right: 72px; bottom: 64px;
+    display: flex; gap: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .title-slide .meta p { font-size: 20px; }
+
+  /* ---------- Схема со стрелками ---------- */
+  .flow { display: flex; align-items: stretch; gap: 0; }
+  .flow .step {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 18px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  }
+  .flow .step .icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    background: rgba(59,130,246,0.2);
+    border: 2px solid var(--blue);
+  }
+  .flow .step p { font-size: 20px; color: var(--white); font-weight: 600; line-height: 1.3; }
+  .flow .step.final { border-color: var(--green); background: rgba(16,185,129,0.12); }
+  .flow .step.final .icon { border-color: var(--green); background: rgba(16,185,129,0.2); }
+  .flow .arrow {
+    flex: 0 0 48px;
+    position: relative;
+  }
+  .flow .arrow::before { /* линия */
+    content: "";
+    position: absolute;
+    top: 50%; left: 8px; right: 14px;
+    height: 4px;
+    margin-top: -2px;
+    background: var(--blue);
+  }
+  .flow .arrow::after { /* наконечник */
+    content: "";
+    position: absolute;
+    top: 50%; right: 4px;
+    margin-top: -10px;
+    border-left: 14px solid var(--blue);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+  }
+
+  /* ---------- Рынок ---------- */
+  .market .card { text-align: center; }
+  .market .label { font-size: 22px; font-weight: 800; letter-spacing: 3px; }
+  .market .value { font-size: 50px; font-weight: 800; color: var(--white); margin: 12px 0 8px; }
+  .market .desc { font-size: 19px; }
+
+  /* ---------- Таймлайн ---------- */
+  .timeline { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; padding-top: 44px; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    top: 14px; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--blue), var(--green));
+    border-radius: 2px;
+  }
+  .timeline .t-item { position: relative; }
+  .timeline .t-item::before {
+    content: "";
+    position: absolute;
+    top: -40px; left: 28px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 5px solid var(--blue);
+  }
+  .timeline .t-item:last-child::before { border-color: var(--green); }
+  .timeline .week { font-size: 18px; font-weight: 800; color: var(--blue); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .timeline .t-item:last-child .week { color: var(--green); }
+
+  /* ---------- Цифры ---------- */
+  .kpi { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .kpi:last-child { border-bottom: none; }
+  .kpi span:first-child { font-size: 22px; color: var(--grey); }
+  .kpi span:last-child { font-size: 26px; font-weight: 800; color: var(--white); white-space: nowrap; }
+
+  /* ---------- CJM ---------- */
+  .cjm { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+  .cjm .col { display: flex; flex-direction: column; gap: 16px; position: relative; padding: 0 10px; }
+  .cjm .stage {
+    background: var(--blue);
+    color: var(--white);
+    font-weight: 800;
+    font-size: 19px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 16px 8px;
+    clip-path: polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%, 10% 50%);
+  }
+  .cjm .col:first-child .stage { clip-path: polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%); }
+  .cjm .col:nth-child(1) .stage { background: var(--red); }
+  .cjm .col:nth-child(5) .stage { background: var(--green); }
+  .cjm .action { min-height: 200px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 20px 16px; }
+  .cjm .action .emoji { font-size: 40px; margin-bottom: 10px; }
+  .cjm .action p { font-size: 20px; color: var(--white); font-weight: 600; }
+
+  /* ---------- Таблица ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th { text-align: left; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--blue); padding: 8px 12px; border-bottom: 2px solid var(--blue); }
+  td { padding: 7px 12px; color: var(--grey); border-bottom: 1px solid var(--border); }
+  td:first-child { color: var(--white); font-weight: 600; white-space: nowrap; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+  .tbd { color: var(--muted); font-style: italic; }
+
+  .appendix-tag { color: var(--muted); }
+
+  .prompt-box {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--white);
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 10px;
+  }
+
+  /* ---------- Печать в PDF ---------- */
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    html, body { background: var(--bg); width: var(--slide-w); }
+    .deck { display: block; padding: 0; gap: 0; }
+    .slide-wrap { width: var(--slide-w) !important; height: var(--slide-h) !important; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; }
+    .slide-wrap:last-child { page-break-after: auto; break-after: auto; }
+    .slide-wrap > .slide { transform: none !important; }
+    .slide { border-radius: 0; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<main class="deck">
+
+<!-- ================= СЛАЙД 1: ТИТУЛЬНЫЙ ================= -->
+<section class="slide title-slide">
+  <span class="tag">Агротех · Фудтех</span>
+  <h1>Aero<span>Fresh</span></h1>
+  <p class="subtitle">Спасаем еду до того, как она испортится</p>
+  <div class="meta">
+    <p><strong>Категория РСХБ:</strong> Сенсоры и IoT</p>
+    <p><strong>Команда:</strong> [ФИО, класс/курс]</p>
+  </div>
+  <div class="slide-num">01</div>
+</section>
+
+<!-- ================= СЛАЙД 2: ПРОБЛЕМА ================= -->
+<section class="slide">
+  <span class="tag" style="color: var(--red)">Проблема</span>
+  <h2><span class="c-red">19%</span> еды в рознице летит в мусор</h2>
+  <div class="content">
+    <div class="row" style="margin-bottom: 28px;">
+      <div class="card red" style="flex:1; padding: 20px 28px;">
+        <p class="small"><strong class="c-red">ЮНЕП:</strong> 19% отходов в рознице · <strong class="c-red">ФАО:</strong> 13% потерь до розницы</p>
+      </div>
+      <div class="card blue" style="flex:1; padding: 20px 28px;">
+        <p class="small"><strong>ЦА:</strong> категорийные менеджеры и директора локальных сетей</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card quote">
+        <p>Мы закупаем ягоду фурами. Внутри коробки она может начать «гореть» за 12 часов. Открываем — а там уже сок потек. Теряем до 15% маржи</p>
+        <p class="author">— Алексей, категорийный менеджер</p>
+      </div>
+      <div class="card quote">
+        <p>На стыке выгрузки летом температура скачет. Малина этого не прощает. Узнаем о проблеме, когда уже поздно</p>
+        <p class="author">— Дмитрий, логист</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">02</div>
+</section>
+
+<!-- ================= СЛАЙД 3: РЕШЕНИЕ ================= -->
+<section class="slide">
+  <span class="tag" style="color: var(--green)">Решение</span>
+  <h2><span class="c-green">AeroFresh</span> — IoT-наклейка и ИИ для прогноза порчи</h2>
+  <div class="content">
+    <div class="row" style="flex:1; align-items: stretch;">
+      <div style="flex: 1.3; display:flex; flex-direction:column; gap: 24px;">
+        <ul class="list plus">
+          <li>Крепим <strong>умный газоанализатор</strong> на паллету</li>
+          <li>Датчик улавливает <strong>этилен</strong> (газ гниения) и передает данные в облако</li>
+          <li><strong>ИИ предсказывает</strong> точный срок до порчи и присылает пуш менеджеру</li>
+        </ul>
+        <div class="highlight">✓ Магазин успевает переоценить товар и продать со скидкой, а не выбросить</div>
+      </div>
+      <div class="placeholder" style="flex: 0.8;">
+        ВСТАВИТЬ ИЗОБРАЖЕНИЕ
+        <span class="ph-sub">3D-макет датчика на паллете</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">03</div>
+</section>
+
+<!-- ================= СЛАЙД 4: КАК ЭТО РАБОТАЕТ ================= -->
+<section class="slide">
+  <span class="tag">Как это работает</span>
+  <h2>Технология и звено цепочки</h2>
+  <div class="content">
+    <p style="margin-bottom: 32px;">Звено: <strong class="c-blue">доведение до потребителя (Ритейл)</strong></p>
+    <div class="flow" style="height: 240px; margin-bottom: 40px;">
+      <div class="step"><div class="icon">📦</div><p>Датчик на коробке</p></div>
+      <div class="arrow"></div>
+      <div class="step"><div class="icon">📶</div><p>Передача данных (Bluetooth)</p></div>
+      <div class="arrow"></div>
+      <div class="step"><div class="icon">🧠</div><p>ИИ-анализ</p></div>
+      <div class="arrow"></div>
+      <div class="step final"><div class="icon">📱</div><p>«Осталось 6 часов. Скидка 30%»</p></div>
+    </div>
+    <div class="grid-2">
+      <div class="card blue" style="padding: 20px 28px;"><p><strong>Кто пользуется:</strong> Продавец</p></div>
+      <div class="card green" style="padding: 20px 28px;"><p><strong>Кто платит:</strong> Торговая сеть</p></div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">04</div>
+</section>
+
+<!-- ================= СЛАЙД 5: РЫНОК ================= -->
+<section class="slide">
+  <span class="tag">Рынок</span>
+  <h2>Оценка рынка и тренды</h2>
+  <div class="content">
+    <div class="grid-3 market" style="margin-bottom: 36px;">
+      <div class="card" style="border-top: 6px solid var(--blue);">
+        <div class="label c-blue">TAM</div>
+        <div class="value">50 млрд ₽</div>
+        <p class="desc">затраты ритейла РФ</p>
+      </div>
+      <div class="card" style="border-top: 6px solid #60A5FA;">
+        <div class="label" style="color:#60A5FA">SAM</div>
+        <div class="value">8 млрд ₽</div>
+        <p class="desc">локальные сети ЦФО</p>
+      </div>
+      <div class="card" style="border-top: 6px solid var(--green);">
+        <div class="label c-green">SOM</div>
+        <div class="value">15 млн ₽</div>
+        <p class="desc">пилот на 50 магазинов</p>
+      </div>
+    </div>
+    <h3>Тренды</h3>
+    <div class="grid-3">
+      <ul class="list plus"><li>ESG-повестка</li></ul>
+      <ul class="list plus"><li>Автоматизация ритейла</li></ul>
+      <ul class="list plus"><li>Борьба с фудвейстом</li></ul>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">05</div>
+</section>
+
+<!-- ================= СЛАЙД 6: АЛЬТЕРНАТИВЫ ================= -->
+<section class="slide">
+  <span class="tag">Альтернативы и новизна</span>
+  <h2>Почему мы лучше</h2>
+  <div class="content">
+    <div class="grid-2" style="flex:1;">
+      <div style="display:flex; flex-direction:column; gap: 24px;">
+        <div class="card red">
+          <h3><span class="c-red">−</span> Ручной пересмотр</h3>
+          <p class="small">Долго, человеческий фактор, не видит внутри упаковки</p>
+        </div>
+        <div class="card red">
+          <h3><span class="c-red">−</span> Термодатчики</h3>
+          <p class="small">Показывают температуру воздуха, а не продукта</p>
+        </div>
+      </div>
+      <div class="card green" style="display:flex; flex-direction:column; justify-content:center; background: rgba(16,185,129,0.1);">
+        <h3 style="font-size: 32px;"><span class="c-green">+</span> AeroFresh</h3>
+        <ul class="list plus" style="margin-top: 12px;">
+          <li>Измеряем <strong>сам продукт</strong></li>
+          <li>Прогнозируем порчу <strong>за часы до</strong> видимых признаков</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">06</div>
+</section>
+
+<!-- ================= СЛАЙД 7: БИЗНЕС-МОДЕЛЬ ================= -->
+<section class="slide">
+  <span class="tag">Бизнес-модель</span>
+  <h2>Экономика проекта</h2>
+  <div class="content">
+    <div class="grid-2">
+      <div class="card blue">
+        <h3>Кто платит: <span class="c-blue">торговая сеть</span></h3>
+        <div class="kpi"><span>Подписка</span><span>15 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Датчик</span><span>5 ₽/шт.</span></div>
+        <div class="kpi"><span><strong>Итого</strong></span><span class="c-blue">20 000 ₽/мес.</span></div>
+      </div>
+      <div class="card green">
+        <h3>Юнит-экономика <span class="c-green">на клиента</span></h3>
+        <div class="kpi"><span>Затраты проекта</span><span>8 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Прибыль</span><span class="c-green">12 000 ₽</span></div>
+        <div class="kpi"><span>Экономия клиента</span><span>24 000 ₽/мес.</span></div>
+      </div>
+    </div>
+    <div class="highlight" style="margin-top: 28px; text-align:center;">Окупаемость для клиента: <span class="c-green">1 месяц</span></div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">07</div>
+</section>
+
+<!-- ================= СЛАЙД 8: ПРОТОТИП ================= -->
+<section class="slide">
+  <span class="tag">Прототип и проверка</span>
+  <h2>Визуализация и обратная связь</h2>
+  <div class="content">
+    <div class="row" style="flex:1; min-height:0;">
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншот приложения (список партий)</span></div>
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншот пуш-уведомления</span></div>
+      <div style="flex:1.3; display:flex; flex-direction:column; gap: 20px;">
+        <div class="card green" style="text-align:center; padding: 22px;">
+          <div style="font-size: 64px; font-weight: 800;" class="c-green">4 из 5</div>
+          <p class="small">менеджеров готовы внедрить после показа макета</p>
+        </div>
+        <div class="card quote" style="flex:1;">
+          <p style="font-size:19px;">Если приложение скажет мне, когда давать скидку, я сэкономлю кучу нервов</p>
+          <p class="author">— Марина, продавец</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">08</div>
+</section>
+
+<!-- ================= СЛАЙД 9: ПЛАН ================= -->
+<section class="slide">
+  <span class="tag">План развития</span>
+  <h2>Тест на 4–6 недель</h2>
+  <div class="content" style="justify-content:center;">
+    <div class="timeline">
+      <div class="t-item card">
+        <div class="week">Неделя 1–2</div>
+        <h3>Бумажный тест</h3>
+        <p class="small">Проверяем гипотезу вручную в магазине</p>
+      </div>
+      <div class="t-item card">
+        <div class="week">Неделя 3–4</div>
+        <h3>No-code MVP</h3>
+        <p class="small">Сборка Telegram-бота с уведомлениями</p>
+      </div>
+      <div class="t-item card">
+        <div class="week">Неделя 5–6</div>
+        <h3>Метрики</h3>
+        <p class="small">Сбор метрик и путь к пилоту</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">09</div>
+</section>
+
+<!-- ================= СЛАЙД 10: КОМАНДА ================= -->
+<section class="slide">
+  <span class="tag">Команда и ИИ</span>
+  <h2>Команда и инструменты</h2>
+  <div class="content">
+    <div class="grid-2" style="flex:1;">
+      <div class="card" style="display:flex; gap: 28px; align-items:center;">
+        <div class="placeholder" style="width: 200px; height: 240px; flex-shrink:0;">ВСТАВИТЬ ФОТО</div>
+        <div>
+          <h3>[ФИО]</h3>
+          <p class="small">[Школа / класс]</p>
+          <p class="small" style="margin-top: 12px;">[Роль в проекте]</p>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap: 24px;">
+        <div class="card blue">
+          <h3>ChatGPT</h3>
+          <p class="small">Структура питча, генерация гипотез</p>
+        </div>
+        <div class="card blue">
+          <h3>Midjourney</h3>
+          <p class="small">3D-макет датчика</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">10</div>
+</section>
+
+<!-- ================= СЛАЙД 11: CJM ================= -->
+<section class="slide">
+  <span class="tag appendix-tag">Приложение 1</span>
+  <h2>CJM — путь клиента</h2>
+  <div class="content" style="justify-content:center;">
+    <div class="cjm">
+      <div class="col"><div class="stage">Проблема</div><div class="card action"><div class="emoji">🍓</div><p>Менеджер видит порчу</p></div></div>
+      <div class="col"><div class="stage">Поиск</div><div class="card action"><div class="emoji">🔍</div><p>Находит AeroFresh</p></div></div>
+      <div class="col"><div class="stage">Действие</div><div class="card action"><div class="emoji">🏷️</div><p>Клеит датчики</p></div></div>
+      <div class="col"><div class="stage">Результат</div><div class="card action"><div class="emoji">🔔</div><p>Получает пуш</p></div></div>
+      <div class="col"><div class="stage">Ценность</div><div class="card action" style="border-color: var(--green);"><div class="emoji">💰</div><p>Делает скидку, сохраняет деньги</p></div></div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">11</div>
+</section>
+
+<!-- ================= СЛАЙД 12: РАСЧЕТЫ ================= -->
+<section class="slide">
+  <span class="tag appendix-tag">Приложение 2</span>
+  <h2>Детальные расчеты</h2>
+  <div class="content">
+    <div class="grid-2">
+      <div class="card">
+        <div class="kpi"><span>Потери магазина</span><span class="c-red">80 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Снижение потерь (30%)</span><span class="c-green">24 000 ₽/мес.</span></div>
+        <div class="kpi"><span>Затраты на AeroFresh</span><span>20 000 ₽/мес.</span></div>
+        <div class="kpi"><span><strong>Чистая выгода</strong></span><span class="c-green">4 000 ₽/мес.</span></div>
+      </div>
+      <div class="card green" style="display:flex; flex-direction:column; justify-content:center; text-align:center;">
+        <p class="small">Точка безубыточности проекта</p>
+        <div style="font-size: 96px; font-weight: 800; line-height: 1.1;" class="c-green">40</div>
+        <p style="color: var(--white); font-weight: 700;">магазинов</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">12</div>
+</section>
+
+<!-- ================= СЛАЙД 13: ТЕХНОЛОГИИ ================= -->
+<section class="slide">
+  <span class="tag appendix-tag">Приложение 3</span>
+  <h2>Лист технологий</h2>
+  <div class="content">
+    <div class="grid-2">
+      <div class="card blue">
+        <h3>⚙️ Аппаратная часть</h3>
+        <ul class="list">
+          <li>Газовые сенсоры (этилен, CO₂)</li>
+          <li>Bluetooth Low Energy</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>💻 Программное обеспечение</h3>
+        <ul class="list plus">
+          <li>AWS / Yandex Cloud</li>
+          <li>ML-модель (временные ряды)</li>
+          <li>React Native</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">13</div>
+</section>
+
+<!-- ================= СЛАЙД 14: ПРОМПТЫ ================= -->
+<section class="slide">
+  <span class="tag appendix-tag">Приложение 4</span>
+  <h2>Промпты ИИ</h2>
+  <div class="content">
+    <div class="row" style="flex:1; min-height:0;">
+      <div style="flex:1.2; display:flex; flex-direction:column; gap: 20px;">
+        <div class="card blue">
+          <h3>ChatGPT</h3>
+          <div class="prompt-box">«Выступи в роли категорийного менеджера...»</div>
+        </div>
+        <div class="card blue">
+          <h3>Midjourney</h3>
+          <div class="prompt-box">«Smart IoT sensor sticker on a box of strawberries...»</div>
+        </div>
+      </div>
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншоты диалогов с ИИ</span></div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">14</div>
+</section>
+
+<!-- ================= СЛАЙД 15: ОПРОСЫ ================= -->
+<section class="slide" style="padding-top: 44px;">
+  <span class="tag appendix-tag">Приложение 5</span>
+  <h2 style="font-size: 40px; margin-bottom: 18px;">Сводка опросов</h2>
+  <div class="content">
+    <div class="row" style="flex:1; min-height:0; gap: 24px;">
+      <div style="flex: 2.2;">
+        <table>
+          <thead><tr><th>№</th><th>Роль</th><th>Имя</th><th>Главная цитата</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Категорийный менеджер</td><td>Алексей</td><td>Теряем 15% маржи</td></tr>
+            <tr><td>2</td><td>Логист</td><td>Дмитрий</td><td>Узнаем о проблеме, когда уже поздно</td></tr>
+            <tr><td>3</td><td>Продавец</td><td>Марина</td><td>Сэкономлю кучу нервов</td></tr>
+            <tr><td>4</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>5</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>6</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>7</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>8</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>9</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+            <tr><td>10</td><td class="tbd">[Роль]</td><td class="tbd">[Имя]</td><td class="tbd">[Цитата]</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="placeholder" style="flex:1;">ВСТАВИТЬ ИЗОБРАЖЕНИЕ<span class="ph-sub">Скриншоты переписок</span></div>
+    </div>
+  </div>
+  <div class="slide-brand">AERO<span>FRESH</span></div>
+  <div class="slide-num">15</div>
+</section>
+
+</main>
+
+<script>
+  // Оборачиваем слайды и масштабируем их под ширину окна (только на экране; при печати масштаб сбрасывается)
+  document.querySelectorAll('.slide').forEach(function (s) {
+    var w = document.createElement('div');
+    w.className = 'slide-wrap';
+    s.parentNode.insertBefore(w, s);
+    w.appendChild(s);
+  });
+  function fit() {
+    var scale = Math.min(1, (window.innerWidth - 48) / 1280);
+    document.documentElement.style.setProperty('--scale', scale);
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('beforeprint', function () { document.documentElement.style.setProperty('--scale', 1); });
+  window.addEventListener('afterprint', fit);
+  fit();
+</script>
+</body>
+</html>
